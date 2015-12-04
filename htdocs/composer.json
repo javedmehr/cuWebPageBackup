@@ -1,0 +1,26 @@
+{
+  "name": "computerundsound/cuwebbackup",
+  "description": "Backup a webpage with mysql-backup",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "cusp",
+      "email": "info@cusp.de",
+      "homepage": "http://www.cusp.de"
+    }
+  ],
+  "config": {
+    "vendor-dir": "assets/_close/vendor"
+  },
+  "version": "1.0.0-alpha",
+  "minimum-stability": "dev",
+  "require": {
+  },
+  "autoload": {
+    "psr-4": {
+      "\\": [
+        "/../classes/"
+      ]
+    }
+  }
+}
