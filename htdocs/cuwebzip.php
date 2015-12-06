@@ -20,6 +20,8 @@ $outputMessages = array();
 /**
  * Class ExecInfo
  */
+
+/** @noinspection PhpIllegalPsrClassPathInspection */
 class ExecInfo {
 
     protected static $execStr = '';
@@ -155,14 +157,10 @@ function makeZip($fileName, $followSymlinks = false) {
  * @param $dbUser
  * @param $dbPassword
  */
-function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbFileName) {
+function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbNames, $dbFileName) {
     global $outputMessages;
 
-    $execStr = "mysqldump -h $dbServer -u $dbUser  --all-databases > $dbFileName";
-
-    if ($dbPassword) {
-        $execStr = "mysqldump.exe -h $dbServer -u $dbUser -p$dbPassword --all-databases > $dbFileName";
-    }
+    $execStr = "mysqldump -h $dbServer -u $dbPassword $dbUser  $dbNames > $dbFileName";
 
     define('DB_FILENAME_FOR_BACKUP', $dbFileName);
 
@@ -175,21 +173,24 @@ function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbFileName) {
 $dbServername = testValue('inputDBServername');
 $dbUsername   = testValue('inputDBUsername');
 $dbPassword   = testValue('inputDBPassword');
+$dbNames      = testValue('inputDBNames');
+$dbFile       = testValue('inputDBfileNameForBackup');
+$fsFile       = testValue('inputFSfileNameForBackup');
 
-$dbDoIt       = testValue('DBDoIt');
-$fsDoIt       = testValue('FSDoIt');
+$dbDoIt = testValue('DBDoIt');
+$fsDoIt = testValue('FSDoIt');
 
 if ($dbServername && $dbUsername && $dbDoIt) {
 
-    $dbFileNameForBackup = testValue('inputDBfileNameForBackup') ?: DEFAULT_DB_FILENAME_FOR_BACKUP;
+    $dbFile = $dbFile ?: DEFAULT_DB_FILENAME_FOR_BACKUP;
 
-    makeDBBackup($dbServername, $dbUsername, $dbPassword, $dbFileNameForBackup);
+    makeDBBackup($dbServername, $dbUsername, $dbPassword, $dbNames, $dbFile);
 
 }
 
 if ($fsDoIt) {
 
-    $fsFileNameForBackup = testValue('inputFSfileNameForBackup') ?: DEFAULT_FS_FILENAME_FOR_BACKUP;
+    $fsFileNameForBackup = $fsFile ?: DEFAULT_FS_FILENAME_FOR_BACKUP;
 
     $followSymlinks = testValue('inputFSfollowSymlinks');
 
