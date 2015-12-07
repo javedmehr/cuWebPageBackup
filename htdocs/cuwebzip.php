@@ -9,7 +9,7 @@
  */
 
 define('DEFAULT_DB_FILENAME_FOR_BACKUP', 'cu_db_backup.sql');
-define('DEFAULT_FS_FILENAME_FOR_BACKUP', 'cu_fs_backup.sql');
+define('DEFAULT_FS_FILENAME_FOR_BACKUP', 'cu_fs_backup.zip');
 
 define('DEFAULT_DB_SERVER', 'localhost');
 define('DEFAULT_DB_USER', 'root');
