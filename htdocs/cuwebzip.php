@@ -14,6 +14,8 @@ define('DEFAULT_FS_FILENAME_FOR_BACKUP', 'cu_fs_backup.zip');
 define('DEFAULT_DB_SERVER', 'localhost');
 define('DEFAULT_DB_USER', 'root');
 define('DEFAULT_DB_PASSWORD', '');
+define('DEFAULT_DB_NAMES', '--all-databases');
+define('DB_EXEC_TEMPLATE', 'mysqldump -h ###dbServer### -u ###dbUser### -p###dbPassword### ###dbNames### > ###dbFileName###');
 
 $outputMessages = array();
 
@@ -160,7 +162,18 @@ function makeZip($fileName, $followSymlinks = false) {
 function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbNames, $dbFileName) {
     global $outputMessages;
 
-    $execStr = "mysqldump -h $dbServer -u $dbPassword $dbUser  $dbNames > $dbFileName";
+    // mysqldump -h ###dbServer### -u ###dbPassword### ###dbUser### ###dbNames### > ###dbFileName###
+    $execStr = DB_EXEC_TEMPLATE;
+
+    $replacer = array(
+        '###dbServer###'   => $dbServer,
+        '###dbPassword###' => $dbPassword,
+        '###dbUser###'     => $dbUser,
+        '###dbNames###'    => $dbNames,
+        '###dbFileName###' => $dbFileName,
+    );
+
+    $execStr = str_replace(array_keys($replacer), array_values($replacer), $execStr);
 
     define('DB_FILENAME_FOR_BACKUP', $dbFileName);
 
@@ -274,16 +287,25 @@ if ($fsDoIt) {
                     <div class="form-group">
                         <label for="inputDBServername" class="col-sm-4 control-label">DB Servername</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="inputDBServername" name="inputDBServername"
-                                   placeholder="DB Servername" value="<?php echo DEFAULT_DB_SERVER; ?>">
+                            <div class="input-group">
+                                <div class="input-group-addon"><span
+                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                <input type="text" class="form-control" id="inputDBServername" name="inputDBServername"
+                                       placeholder="DB Servername" value="<?php echo DEFAULT_DB_SERVER; ?>">
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="inputDBUsername" class="col-sm-4 control-label">DB Username</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="inputDBUsername" name="inputDBUsername"
-                                   placeholder="DB Username" value="<?php echo DEFAULT_DB_USER; ?>">
+                            <div class="input-group">
+                                <div class="input-group-addon"><span
+                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+
+                                <input type="text" class="form-control" id="inputDBUsername" name="inputDBUsername"
+                                       placeholder="DB Username" value="<?php echo DEFAULT_DB_USER; ?>">
+                            </div>
                         </div>
                     </div>
 
@@ -295,12 +317,39 @@ if ($fsDoIt) {
                         </div>
                     </div>
 
+
+                    <div class="form-group">
+                        <label for="inputDBNames" class="col-sm-4 control-label">DB Names</label>
+                        <div class="col-sm-8">
+                            <div class="input-group">
+                                <div class="input-group-addon"><span
+                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                <!--                            <div class="small pull-right"><span class="glyphicon glyphicon-question-sign"></span></div>-->
+                                <input type="text" class="form-control" id="inputDBNames" name="inputDBNames"
+                                       placeholder="DB Names" value="<?php echo DEFAULT_DB_NAMES; ?>">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label for="inputDBfileNameForBackup" class="col-sm-4 control-label">Filename for
                             Database-Backup</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="inputDBfileNameForBackup"
-                                   value="curBackupServer.sql">
+                            <div class="input-group">
+                                <div class="input-group-addon"><span
+                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+
+                                <input type="text" class="form-control" id="inputDBfileNameForBackup"
+                                       name="inputDBfileNameForBackup"
+                                       value="curBackupServer.sql">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputDBaddOptions" class="col-sm-4 control-label">Add Options</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="inputDBaddOptions" name="inputDBaddOptions">
                         </div>
                     </div>
 
@@ -335,8 +384,13 @@ if ($fsDoIt) {
                         <label for="inputFSfileNameForBackup" class="col-sm-4 control-label">Filename for
                             Filesystem-Backup</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" id="inputFSfileNameForBackup"
-                                   value="curBackupServer.zip">
+                            <div class="input-group">
+                                <div class="input-group-addon"><span
+                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+
+                                <input type="text" class="form-control" id="inputFSfileNameForBackup"
+                                       value="curBackupServer.zip">
+                            </div>
                         </div>
                     </div>
 
