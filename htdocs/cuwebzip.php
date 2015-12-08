@@ -259,16 +259,6 @@ $fsFile       = testValue('inputFSfileNameForBackup');
 $dbDoIt = testValue('DBDoIt');
 $fsDoIt = testValue('FSDoIt');
 
-if ($dbServername && $dbUsername && $dbDoIt) {
-
-    $dbFile = $dbFile ?: DEFAULT_DB_FILENAME_FOR_BACKUP;
-
-    $dbFile = fileNameWithCounter($dbFile);
-
-    makeDBBackup($dbServername, $dbUsername, $dbPassword, $dbNames, $dbFile);
-
-}
-
 if ($fsDoIt) {
 
     $fsFileNameForBackup = $fsFile ?: DEFAULT_FS_FILENAME_FOR_BACKUP;
@@ -278,6 +268,16 @@ if ($fsDoIt) {
     $followSymlinks = testValue('inputFSfollowSymlinks');
 
     makeZip($fsFileNameForBackup, $followSymlinks);
+}
+
+if ($dbServername && $dbUsername && $dbDoIt) {
+
+    $dbFile = $dbFile ?: DEFAULT_DB_FILENAME_FOR_BACKUP;
+
+    $dbFile = fileNameWithCounter($dbFile);
+
+    makeDBBackup($dbServername, $dbUsername, $dbPassword, $dbNames, $dbFile);
+
 }
 
 ?>
