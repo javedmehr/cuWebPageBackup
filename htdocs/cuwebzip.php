@@ -1,21 +1,53 @@
 <?php
 /*
- * Copyright by Jörg Wrase - www.Computer-Und-Sound.de
- * Date: 04.12.2015
- * Time: 21:52
- * 
- * Created by IntelliJ IDEA
- *
+
+Copyright (c) 2015 Jörg Wrase - cusp.de
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
  */
 
-define('DEFAULT_DB_FILENAME_FOR_BACKUP', 'cu_db_backup.sql');
-define('DEFAULT_FS_FILENAME_FOR_BACKUP', 'cu_fs_backup.zip');
+session_start();
+
+$counter = 1;
+
+if (isset($_SESSION['counter'])) {
+    $counter = $_SESSION['counter'];
+    $counter++;
+}
+$_SESSION['counter'] = $counter;
+
+define('COUNTER', $counter);
+
+define('DEFAULT_DB_FILENAME_FOR_BACKUP', 'cu_db_backup###counter###.sql');
+define('DEFAULT_FS_FILENAME_FOR_BACKUP', 'cu_fs_backup###counter###.zip');
 
 define('DEFAULT_DB_SERVER', 'localhost');
 define('DEFAULT_DB_USER', 'root');
 define('DEFAULT_DB_PASSWORD', '');
 define('DEFAULT_DB_NAMES', '--all-databases');
-define('DB_EXEC_TEMPLATE', 'mysqldump -h ###dbServer### -u ###dbUser### -p###dbPassword### ###dbNames### > ###dbFileName###');
+define('DB_EXEC_TEMPLATE', 'mysqldump -h ###dbServer### -u ###dbUser### ###dbPassword### ###dbNames### > ###dbFileName###');
+
+
+/* For Debugging */
+
+define('DONT_EXEC', false);
 
 $outputMessages = array();
 
@@ -112,18 +144,37 @@ function testValue($getParameterName) {
 }
 
 /**
+ * @param $fileName
+ *
+ * @return string
+ */
+function fileNameWithCounter($fileName) {
+    global $counter;
+
+    $fileName = trim($fileName);
+    $fileName = str_replace('###counter###', $counter, $fileName);
+
+    return $fileName;
+
+}
+
+/**
  * @param $execStr
  *
  * @return array
  */
 function cuExec($execStr) {
 
+    if (DONT_EXEC !== true) {
+        $return = exec($execStr, $output, $returnValue);
+    }
 
-//    $execStr = escapeshellarg($execStr);
 
-    $return = exec($execStr, $output, $returnValue);
+    $output = (isset($output) && is_array($output)) ? $output : array();
 
-    $output = is_array($output) ? $output : array();
+    $execStr     = isset($execStr) ? $execStr : null;
+    $return      = isset($return) ? $return : null;
+    $returnValue = isset($returnValue) ? $returnValue : null;
 
     ExecInfo::setExecStr($execStr);
     ExecInfo::setOutput($output);
@@ -151,6 +202,8 @@ function makeZip($fileName, $followSymlinks = false) {
 
     $outputMessages['FS'] = ExecInfo::getVisibleArray();
 
+    define('FS_FILENAME_FOR_BACKUP', $fileName);
+
 }
 
 
@@ -164,6 +217,12 @@ function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbNames, $dbFileName) {
 
     // mysqldump -h ###dbServer### -u ###dbPassword### ###dbUser### ###dbNames### > ###dbFileName###
     $execStr = DB_EXEC_TEMPLATE;
+
+    $dbPassword = trim($dbPassword);
+
+    if ($dbPassword !== '--all-databases' && $dbPassword !== '') {
+        $dbPassword = '-p' . $dbPassword;
+    }
 
     $replacer = array(
         '###dbServer###'   => $dbServer,
@@ -183,6 +242,13 @@ function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbNames, $dbFileName) {
 
 }
 
+$action = testValue('action');
+
+if ($action === 'phpinfo') {
+    phpinfo();
+    exit;
+}
+
 $dbServername = testValue('inputDBServername');
 $dbUsername   = testValue('inputDBUsername');
 $dbPassword   = testValue('inputDBPassword');
@@ -197,6 +263,8 @@ if ($dbServername && $dbUsername && $dbDoIt) {
 
     $dbFile = $dbFile ?: DEFAULT_DB_FILENAME_FOR_BACKUP;
 
+    $dbFile = fileNameWithCounter($dbFile);
+
     makeDBBackup($dbServername, $dbUsername, $dbPassword, $dbNames, $dbFile);
 
 }
@@ -204,6 +272,8 @@ if ($dbServername && $dbUsername && $dbDoIt) {
 if ($fsDoIt) {
 
     $fsFileNameForBackup = $fsFile ?: DEFAULT_FS_FILENAME_FOR_BACKUP;
+
+    $fsFileNameForBackup = fileNameWithCounter($fsFileNameForBackup);
 
     $followSymlinks = testValue('inputFSfollowSymlinks');
 
@@ -217,7 +287,7 @@ if ($fsDoIt) {
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hostfile editieren</title>
+    <title>cuWebPageBackup</title>
 
     <!-- Bootstrap -->
     <!-- Latest compiled and minified CSS -->
@@ -238,8 +308,9 @@ if ($fsDoIt) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
 
     <style>
-
-
+        body {
+            padding-top : 50px;
+        }
     </style>
 
     <script type="text/javascript">
@@ -249,20 +320,52 @@ if ($fsDoIt) {
 </head>
 <body>
 
-<form class="form-horizontal" enctype="application/x-www-form-urlencoded">
-
+<nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="<?php echo $_SERVER['SCRIPT_NAME']; ?>">Backup your Webpage</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="<?php echo $_SERVER['SCRIPT_NAME']; ?>?action=phpinfo" target="_blank">Show PHP Info</a>
+                </li>
+                <li><a href="http://www.cusp.de">Service by cusp.de - Jörg Wrase</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<form class="form-horizontal" enctype="application/x-www-form-urlencoded"
+      action="<?php echo $_SERVER['SCRIPT_NAME']; ?>">
+    <div class="container-fluid">
 
         <div class="row">
 
             <div class="col-sm-14 col-lg-12">
+                <?php if ($dbDoIt || $fsDoIt): ?>
+                    <div class="alert alert-success" role="alert">
+                        <?php if ($dbDoIt): ?>
+                            <a href="<?php echo DB_FILENAME_FOR_BACKUP; ?>">Created BackupFile from
+                                DB: <?php echo DB_FILENAME_FOR_BACKUP; ?></a><br>
+                        <?php endif; ?>
+                        <?php if ($fsDoIt): ?>
+                            <a href="<?php echo FS_FILENAME_FOR_BACKUP; ?>">Created BackupFile from
+                                FS: <?php echo FS_FILENAME_FOR_BACKUP; ?></a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
 
-                <h1>Backup your Webpage</h1>
-
-                <?php if (empty($outputMessages) === false): ?>
+                <?php if (count($outputMessages) > 0): ?>
                     <div class="jumbotron text-info">
 
-                        <h3>Log-Data</h3>
+                        <h3>Log-Data <span class="small">(<?php echo $counter; ?>)</span></h3>
 
                         <pre>
                             <?php print_r($outputMessages); ?>
@@ -341,7 +444,7 @@ if ($fsDoIt) {
 
                                 <input type="text" class="form-control" id="inputDBfileNameForBackup"
                                        name="inputDBfileNameForBackup"
-                                       value="curBackupServer.sql">
+                                       value="<?php echo DEFAULT_DB_FILENAME_FOR_BACKUP; ?>">
                             </div>
                         </div>
                     </div>
@@ -389,7 +492,7 @@ if ($fsDoIt) {
                                         class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
 
                                 <input type="text" class="form-control" id="inputFSfileNameForBackup"
-                                       value="curBackupServer.zip">
+                                       value="<?php echo DEFAULT_FS_FILENAME_FOR_BACKUP; ?>">
                             </div>
                         </div>
                     </div>
