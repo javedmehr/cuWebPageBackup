@@ -42,8 +42,8 @@ define('DEFAULT_DB_SERVER', 'localhost');
 define('DEFAULT_DB_USER', 'root');
 define('DEFAULT_DB_PASSWORD', '');
 define('DEFAULT_DB_NAMES', '--all-databases');
-define('DB_EXEC_TEMPLATE', 'mysqldump -h ###dbServer### -u ###dbUser### ###dbPassword### ###dbNames### > ###dbFileName###');
-
+define('DB_EXEC_TEMPLATE',
+       'mysqldump -h ###dbServer### -u ###dbUser### ###dbPassword### ###dbNames### > ###dbFileName###');
 
 /* For Debugging */
 
@@ -56,17 +56,19 @@ $outputMessages = array();
  */
 
 /** @noinspection PhpIllegalPsrClassPathInspection */
-class ExecInfo {
+class ExecInfo
+{
 
-    protected static $execStr = '';
-    protected static $return = '';
-    protected static $output = array();
+    protected static $execStr     = '';
+    protected static $return      = '';
+    protected static $output      = array();
     protected static $returnValue = '';
 
     /**
      * @return string
      */
     public static function getExecStr() {
+
         return self::$execStr;
     }
 
@@ -74,6 +76,7 @@ class ExecInfo {
      * @param string $execStr
      */
     public static function setExecStr($execStr) {
+
         self::$execStr = (string)$execStr;
     }
 
@@ -81,6 +84,7 @@ class ExecInfo {
      * @return string
      */
     public static function getReturn() {
+
         return self::$return;
     }
 
@@ -88,6 +92,7 @@ class ExecInfo {
      * @param string $return
      */
     public static function setReturn($return) {
+
         self::$return = (string)$return;
     }
 
@@ -95,6 +100,7 @@ class ExecInfo {
      * @return array
      */
     public static function getOutput() {
+
         return self::$output;
     }
 
@@ -102,6 +108,7 @@ class ExecInfo {
      * @param array $output
      */
     public static function setOutput(array $output) {
+
         self::$output = $output;
     }
 
@@ -109,6 +116,7 @@ class ExecInfo {
      * @return string
      */
     public static function getReturnValue() {
+
         return self::$returnValue;
     }
 
@@ -116,10 +124,15 @@ class ExecInfo {
      * @param string $returnValue
      */
     public static function setReturnValue($returnValue) {
+
         self::$returnValue = (string)$returnValue;
     }
 
+    /**
+     * @return array
+     */
     public static function getVisibleArray() {
+
         $infoArray['execStr']     = self::$execStr;
         $infoArray['return']      = self::$return;
         $infoArray['returnValue'] = self::$returnValue;
@@ -137,8 +150,9 @@ class ExecInfo {
  * @return null|string
  */
 function testValue($getParameterName) {
-    $parameter = (isset($_GET[$getParameterName]) && $_GET[$getParameterName] !== '') ?
-        (string)$_GET[$getParameterName] : null;
+
+    $parameter =
+        (isset($_GET[$getParameterName]) && $_GET[$getParameterName] !== '') ? (string)$_GET[$getParameterName] : null;
 
     return $parameter;
 }
@@ -149,6 +163,7 @@ function testValue($getParameterName) {
  * @return string
  */
 function fileNameWithCounter($fileName) {
+
     global $counter;
 
     $fileName = trim($fileName);
@@ -161,14 +176,12 @@ function fileNameWithCounter($fileName) {
 /**
  * @param $execStr
  *
- * @return array
  */
 function cuExec($execStr) {
 
     if (DONT_EXEC !== true) {
         $return = exec($execStr, $output, $returnValue);
     }
-
 
     $output = (isset($output) && is_array($output)) ? $output : array();
 
@@ -187,9 +200,9 @@ function cuExec($execStr) {
  * @param $fileName
  * @param $followSymlinks
  *
- * @return mixed
  */
 function makeZip($fileName, $followSymlinks = false) {
+
     global $outputMessages;
 
     $execStr = "zip --symlinks -r $fileName .";
@@ -206,13 +219,15 @@ function makeZip($fileName, $followSymlinks = false) {
 
 }
 
-
 /**
- * @param $dbServer
- * @param $dbUser
- * @param $dbPassword
+ * @param string $dbServer
+ * @param string $dbUser
+ * @param string $dbPassword
+ * @param string $dbNames
+ * @param string $dbFileName
  */
 function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbNames, $dbFileName) {
+
     global $outputMessages;
 
     // mysqldump -h ###dbServer### -u ###dbPassword### ###dbUser### ###dbNames### > ###dbFileName###
@@ -245,6 +260,7 @@ function makeDBBackup($dbServer, $dbUser, $dbPassword, $dbNames, $dbFileName) {
 $action = testValue('action');
 
 if ($action === 'phpinfo') {
+    /** @noinspection ForgottenDebugOutputInspection */
     phpinfo();
     exit;
 }
@@ -302,7 +318,7 @@ if ($dbServername && $dbUsername && $dbDoIt) {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
 
     <!-- Bootbox -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
@@ -353,11 +369,12 @@ if ($dbServername && $dbUsername && $dbDoIt) {
                     <div class="alert alert-success" role="alert">
                         <?php if ($dbDoIt): ?>
                             <a href="<?php echo DB_FILENAME_FOR_BACKUP; ?>">Created BackupFile from
-                                DB: <?php echo DB_FILENAME_FOR_BACKUP; ?></a><br>
+                                                                            DB: <?php echo DB_FILENAME_FOR_BACKUP; ?></a>
+                            <br>
                         <?php endif; ?>
                         <?php if ($fsDoIt): ?>
                             <a href="<?php echo FS_FILENAME_FOR_BACKUP; ?>">Created BackupFile from
-                                FS: <?php echo FS_FILENAME_FOR_BACKUP; ?></a>
+                                                                            FS: <?php echo FS_FILENAME_FOR_BACKUP; ?></a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
@@ -368,7 +385,10 @@ if ($dbServername && $dbUsername && $dbDoIt) {
                         <h3>Log-Data <span class="small">(<?php echo $counter; ?>)</span></h3>
 
                         <pre>
-                            <?php print_r($outputMessages); ?>
+                            <?php
+                            $out = print_r($outputMessages, true);
+                            echo $out;
+                            ?>
                         </pre>
                     </div>
                 <?php endif; ?>
@@ -392,7 +412,7 @@ if ($dbServername && $dbUsername && $dbDoIt) {
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <div class="input-group-addon"><span
-                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                            class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
                                 <input type="text" class="form-control" id="inputDBServername" name="inputDBServername"
                                        placeholder="DB Servername" value="<?php echo DEFAULT_DB_SERVER; ?>">
                             </div>
@@ -404,7 +424,7 @@ if ($dbServername && $dbUsername && $dbDoIt) {
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <div class="input-group-addon"><span
-                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                            class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
 
                                 <input type="text" class="form-control" id="inputDBUsername" name="inputDBUsername"
                                        placeholder="DB Username" value="<?php echo DEFAULT_DB_USER; ?>">
@@ -426,7 +446,7 @@ if ($dbServername && $dbUsername && $dbDoIt) {
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <div class="input-group-addon"><span
-                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                            class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
                                 <!--                            <div class="small pull-right"><span class="glyphicon glyphicon-question-sign"></span></div>-->
                                 <input type="text" class="form-control" id="inputDBNames" name="inputDBNames"
                                        placeholder="DB Names" value="<?php echo DEFAULT_DB_NAMES; ?>">
@@ -436,11 +456,11 @@ if ($dbServername && $dbUsername && $dbDoIt) {
 
                     <div class="form-group">
                         <label for="inputDBfileNameForBackup" class="col-sm-4 control-label">Filename for
-                            Database-Backup</label>
+                                                                                             Database-Backup</label>
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <div class="input-group-addon"><span
-                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                            class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
 
                                 <input type="text" class="form-control" id="inputDBfileNameForBackup"
                                        name="inputDBfileNameForBackup"
@@ -485,11 +505,11 @@ if ($dbServername && $dbUsername && $dbDoIt) {
 
                     <div class="form-group">
                         <label for="inputFSfileNameForBackup" class="col-sm-4 control-label">Filename for
-                            Filesystem-Backup</label>
+                                                                                             Filesystem-Backup</label>
                         <div class="col-sm-8">
                             <div class="input-group">
                                 <div class="input-group-addon"><span
-                                        class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
+                                            class="text-info glyphicon glyphicon-exclamation-sign"></span></div>
 
                                 <input type="text" class="form-control" id="inputFSfileNameForBackup"
                                        value="<?php echo DEFAULT_FS_FILENAME_FOR_BACKUP; ?>">
